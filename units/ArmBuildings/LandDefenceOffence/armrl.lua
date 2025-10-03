@@ -104,6 +104,8 @@ return {
 				areaofeffect = 48,
 				avoidfeature = false,
 				burnblow = true,
+				burst = 3,
+				burstrate = 0.3,
 				canattackground = false,
 				castshadow = false,
 				cegtag = "missiletrailaa",
