@@ -39,10 +39,7 @@ return {
 		customparams = {
 			unitgroup = 'weapon',
 			basename = "base",
-
-			-- Removed to prevent repeated muzzle flash during sustained beam cycles.
-			-- firingceg = "barrelshot-large",
-
+			firingceg = "barrelshot-large",
 			kickback = "-0.4",
 			lumamult = "1.2",
 			model_author = "Flaka",
@@ -72,8 +69,8 @@ return {
 
 		sfxtypes = {
 			explosiongenerators = {
-				[1] = "custom:barrelshot-huge",
-				[2] = "custom:DUST_CLOUD_HUGE",
+				[1] = "custom:none",
+				[2] = "custom:none",
 			},
 		},
 
@@ -103,34 +100,46 @@ return {
 			arm_bosscannon = {
 				areaofeffect = 8,
 				avoidfeature = false,
-				beamdecay = 0.05,
-				beamtime = 0.1,
-				beamttl = 1,
-				corethickness = 0.233,
-				craterareaofeffect = 0,
-				craterboost = 0,
-				cratermult = 0,
-				edgeeffectiveness = 0.15,
-				energypershot = 6,
+				avoidfriendly = false,
+
+				name = "Epic Shard Beamer",
+				range = 900,
+				reloadtime = 0.025,
+
+				weapontype = "Cannon",
+				turret = true,
+				weaponvelocity = 850,
+
+				projectiles = 10,
+				sprayangle = 350,
+
+				burst = 1,
+				burstrate = 0.0,
+
+				size = 0.8,
+				stages = 12,
+				separation = 0.5,
+
+				gravityaffected = false,
+				collidefriendly = false,
+				avoidfeature = false,
+
 				explosiongenerator = "custom:laserhit-beamer",
-				firestarter = 30,
-				impactonly = 1,
-				impulsefactor = 0,
-				laserflaresize = 9.35,
-				name = "Epic Beamer Cannon",
-				noselfdamage = true,
-				range = 1090,
-				reloadtime = 0.1,
-				rgbcolor = "0 0 1",
+				cegtag = "lightning_shard_trail",
+
+				rgbcolor = "0 0.8 1",
+				rgbcolor2 = "0.6 1 1",
+
+				soundstart = "beamershot2",
 				soundhitdry = "",
 				soundhitwet = "sizzle",
-				soundstart = "beamershot2",
 				soundtrigger = 1,
-				thickness = 12.4,
+
 				tolerance = 10000,
-				turret = true,
-				weapontype = "BeamLaser",
-				weaponvelocity = 1000,
+				firestarter = 30,
+				impulsefactor = 0,
+
+
 				damage = {
 					commanders = 40,
 					default = 260.6,
@@ -141,10 +150,11 @@ return {
 
 		weapons = {
 			[1] = {
-				badtargetcategory = "VTOL",
-				def = "ARM_BOSSCANNON",
-				onlytargetcategory = "NOTSUB",
-			},
+	badtargetcategory = "VTOL",
+	def = "ARM_BOSSCANNON",
+	onlytargetcategory = "NOTSUB",
+	fastautoretargeting = true,
+},
 		},
 	},
 }

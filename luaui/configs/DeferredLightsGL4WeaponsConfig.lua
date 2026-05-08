@@ -747,30 +747,46 @@ local explosionLightsNames = {}
 local muzzleFlashLightsNames = {}
 local projectileDefLightsNames = {}
 
-projectileDefLightsNames["armrattet4_arm_bosscannon"] =
-	GetLightClass("LaserProjectile", nil, "Large", {
-		a = 0.35,
-		r = 0.08, g = 0.10, b = 1.25,
-		radius = 260,
-
-		color2r = 0.04,
-		color2g = 0.02,
-		color2b = 0.45,
-		colortime = 1.2,
-
-		pos2x = 0,
-		pos2y = 160,
-		pos2z = 0,
-
-		modelfactor = 0.85,
-		specular = 0.12,
-		scattering = 0.65,
-		lensflare = 32,
-		selfshadowing = 8,
-
-		lifetime = 9,
+muzzleFlashLightsNames["armrattet4_arm_bosscannon"] =
+	GetLightClass("MuzzleFlash", nil, "Pico", {
+		a = 0,
+		radius = 0,
+		lensflare = 0,
+		scattering = 0,
+		lifetime = 0,
 		sustain = 0,
 	})
+
+
+projectileDefLightsNames["armrattet4_arm_bosscannon"] =
+	GetLightClass("CannonProjectile", nil, "Pico", {
+		a = 0.01,
+		r = 0.04, g = 0.12, b = 0.35,
+		radius = 24,
+		modelfactor = 0.02,
+		specular = 0,
+		scattering = 0.01,
+		lensflare = 0,
+		selfshadowing = 0,
+		lifetime = 0,
+		sustain = 0,
+	})
+
+
+
+	Spring.Echo("=== RATTE T4 WEAPONDEF DEBUG ===")
+
+for name, wd in pairs(WeaponDefNames) do
+	if string.find(name, "rattet4") or string.find(name, "bosscannon") then
+		Spring.Echo("FOUND WEAPONDEF:", name, wd.id)
+	end
+end
+
+if WeaponDefNames["armrattet4_arm_bosscannon"] then
+	Spring.Echo("Override key is valid: armrattet4_arm_bosscannon")
+else
+	Spring.Echo("Override key NOT FOUND: armrattet4_arm_bosscannon")
+end
 
 --cortrem
 explosionLightsNames["cortrem_tremor_focus_fire"] =

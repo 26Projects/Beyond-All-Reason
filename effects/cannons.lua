@@ -1,6 +1,51 @@
 -- cannon particles
 
+
+
 local definitions = {
+	
+	["lightning_shard_trail"] = {
+	sparks = {
+		class = [[CSimpleParticleSystem]],
+		count = 1,
+		properties = {
+			airdrag = 0.92,
+
+			colormap = [[
+				0.2 0.8 1 0.025
+				0.1 0.5 1 0.012
+				0 0 0 0.01
+			]],
+
+			directional = true,
+			emitrot = 0,
+			emitrotspread = 4,
+			emitvector = [[dir]],
+			gravity = [[0,0,0]],
+
+			numparticles = 1,
+
+			particlelife = 12,
+			particlelifespread = 3,
+
+			particlesize = 2.2,
+			particlesizespread = .08,
+
+			particlespeed = 0,
+			particlespeedspread = 0,
+
+			pos = [[0,0,0]],
+
+			sizegrowth = -0.3,
+			sizemod = 0.98,
+
+			texture = [[spark]],
+
+			useairlos = false,
+		},
+	},
+},
+
 	["cannonblaze-small"] = {
 		flame = {
             air                = true,

@@ -1355,6 +1355,8 @@ definitions["laserhit-beamer"] = {
             useairlos          = false,
         },
     },
+    
+    
     --sparkshit = {
     --  air                = false,
     --  class              = [[CSimpleParticleSystem]],
@@ -1385,6 +1387,7 @@ definitions["laserhit-beamer"] = {
     --    useairlos          = false,
     --  },
     --},
+      
 }
 
 return definitions
