@@ -747,6 +747,31 @@ local explosionLightsNames = {}
 local muzzleFlashLightsNames = {}
 local projectileDefLightsNames = {}
 
+projectileDefLightsNames["armrattet4_arm_bosscannon"] =
+	GetLightClass("LaserProjectile", nil, "Large", {
+		a = 0.35,
+		r = 0.08, g = 0.10, b = 1.25,
+		radius = 260,
+
+		color2r = 0.04,
+		color2g = 0.02,
+		color2b = 0.45,
+		colortime = 1.2,
+
+		pos2x = 0,
+		pos2y = 160,
+		pos2z = 0,
+
+		modelfactor = 0.85,
+		specular = 0.12,
+		scattering = 0.65,
+		lensflare = 32,
+		selfshadowing = 8,
+
+		lifetime = 9,
+		sustain = 0,
+	})
+
 --cortrem
 explosionLightsNames["cortrem_tremor_focus_fire"] =
 GetLightClass("Explosion", nil, "Tiny", {
@@ -1116,7 +1141,8 @@ projectileDefLightsNames["corvroc_cortruck_rocket"] =
 GetLightClass("MissileProjectile", "Warm", "Small", {a = 0.60,
 											modelfactor = 0.1, specular = 0.01, scattering = 0.5, lensflare = 8})
 
--- armbeamer
+
+											-- armbeamer
 projectileDefLightsNames["armbeamer_armbeamer_weapon"] =
 GetLightClass("LaserProjectile", nil, "Medium", {a = 0.20,
 											--r = 1.0, g = 0.65, b = 0.1, radius = 240,

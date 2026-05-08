@@ -35,10 +35,14 @@ return {
 		turninplaceanglelimit = 360,
 		turninplacespeedlimit = 1,
 		turnrate = 150,
+
 		customparams = {
 			unitgroup = 'weapon',
 			basename = "base",
-			firingceg = "barrelshot-large",
+
+			-- Removed to prevent repeated muzzle flash during sustained beam cycles.
+			-- firingceg = "barrelshot-large",
+
 			kickback = "-0.4",
 			lumamult = "1.2",
 			model_author = "Flaka",
@@ -48,6 +52,7 @@ return {
 			weapon1turretx = 45,
 			weapon1turrety = 80,
 		},
+
 		featuredefs = {
 			dead = {
 				blocking = true,
@@ -64,12 +69,14 @@ return {
 				reclaimable = true,
 			},
 		},
+
 		sfxtypes = {
 			explosiongenerators = {
 				[1] = "custom:barrelshot-huge",
 				[2] = "custom:DUST_CLOUD_HUGE",
 			},
 		},
+
 		sounds = {
 			canceldestruct = "cancel2",
 			underattack = "warning1",
@@ -91,44 +98,47 @@ return {
 				[1] = "tarmsel",
 			},
 		},
+
 		weapondefs = {
 			arm_bosscannon = {
-				burst = 1,
-				sprayAngle = 3000,
-				projectiles = 5,
-				areaofeffect = 292,
+				areaofeffect = 8,
 				avoidfeature = false,
-				craterareaofeffect = 292,
+				beamdecay = 0.05,
+				beamtime = 0.1,
+				beamttl = 1,
+				corethickness = 0.233,
+				craterareaofeffect = 0,
 				craterboost = 0,
 				cratermult = 0,
 				edgeeffectiveness = 0.15,
-				energypershot = 0,
-				explosiongenerator = "custom:genericshellexplosion-large-aoe",
-				firestarter = 100,
-				gravityaffected = "true",
-				impulsefactor = 0.18,
-				leadlimit = 64,
-				name = "Huge g2g plasma cannon",
+				energypershot = 6,
+				explosiongenerator = "custom:laserhit-beamer",
+				firestarter = 30,
+				impactonly = 1,
+				impulsefactor = 0,
+				laserflaresize = 9.35,
+				name = "Epic Beamer Cannon",
 				noselfdamage = true,
-				proximitypriority = -1,
-				range = 1000,
-				reloadtime = 1.5,
-				size = 4,
-				soundhit = "xplonuk2xs",
-				soundhitwet = "splslrg",
-				soundstart = "shotgunbig",
-				targetmoveerror = 0.5,
+				range = 1090,
+				reloadtime = 0.1,
+				rgbcolor = "0 0 1",
+				soundhitdry = "",
+				soundhitwet = "sizzle",
+				soundstart = "beamershot2",
+				soundtrigger = 1,
+				thickness = 12.4,
+				tolerance = 10000,
 				turret = true,
-				weapontype = "Cannon",
-				weaponvelocity = 450,
+				weapontype = "BeamLaser",
+				weaponvelocity = 1000,
 				damage = {
-					commanders = 400,
-					default = 1200,
-					shields = 400,
-					subs = 50,
+					commanders = 40,
+					default = 260.6,
+					vtol = 2,
 				},
 			},
 		},
+
 		weapons = {
 			[1] = {
 				badtargetcategory = "VTOL",
