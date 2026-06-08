@@ -89,7 +89,7 @@ return {
 				name = "Pop-up heavy g2g gauss cannon",
 				nogap = false,
 				noselfdamage = true,
-				range = 750,
+				range = 1100,
 				reloadtime = 5.5,
 				separation = 1.0,
 				sizedecay = 0.06,

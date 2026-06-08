@@ -125,6 +125,8 @@ return {
 				noselfdamage = true,
 				range = 800,
 				reloadtime = 7.5,
+				stockpile = true,
+				stockpiletime = 25,
 				smokecolor = 0.82,
 				smokeperiod = 7,
 				smokesize = 11.3,
@@ -149,6 +151,7 @@ return {
 				customparams = {
 					projectile_destruction_method = "descend",
 					overrange_distance = 920,
+					stockpilelimit = 2,
 				},
 				damage = {
 					default = 1000,
