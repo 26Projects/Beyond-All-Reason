@@ -15,8 +15,8 @@ return {
 		hoverattack = true,
 		idleautoheal = 5,
 		idletime = 1800,
-		maxacc = 0.6,
-		maxdec = 0.35,
+		maxacc = 0.28,
+		maxdec = 0.55,
 		maxslope = 10,
 		maxwaterdepth = 0,
 		metalcost = 1250,
@@ -26,9 +26,9 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 720,
-		speed = 224,
-		turninplaceanglelimit = 360,
-		turnrate = 720,
+		speed = 145,
+		turninplaceanglelimit = 120,
+		turnrate = 420,
 		customparams = {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
@@ -100,7 +100,7 @@ return {
 				stages = 14,
 				targetmoveerror = 0.2,
 				tolerance = 6000,
-				turret = false,
+				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 1090,
 				damage = {
@@ -112,6 +112,8 @@ return {
 		weapons = {
 			[1] = {
 				def = "VTOL_SABOT",
+				maindir = "0 0 1",
+				maxangledif = 45,
 				onlytargetcategory = "SURFACE",
 			},
 		},
