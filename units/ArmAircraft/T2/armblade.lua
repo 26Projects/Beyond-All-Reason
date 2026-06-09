@@ -26,7 +26,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 720,
-		speed = 145,
+		speed = 165,
 		turninplaceanglelimit = 120,
 		turnrate = 420,
 		customparams = {
@@ -103,6 +103,9 @@ return {
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 1090,
+				customparams = {
+					noattackrangearc = 1,
+				},
 				damage = {
 					default = 410,
 					vtol = 150,
