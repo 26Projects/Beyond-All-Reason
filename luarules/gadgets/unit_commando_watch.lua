@@ -31,7 +31,7 @@ MINE_BLAST[WeaponDefNames["mine_heavy"].id] = true
 local isBuilding = {}
 local isCommando = {}
 for udid, ud in pairs(UnitDefs) do
-	if string.find(ud.name, 'cormando') then
+	if string.find(ud.name, 'cormando') or ud.name == 'armmav' then
 		isCommando[udid] = true
 	end
 	if ud.isBuilding then
