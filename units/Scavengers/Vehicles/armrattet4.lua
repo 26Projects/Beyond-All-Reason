@@ -97,64 +97,75 @@ return {
 		},
 
 		weapondefs = {
-			arm_bosscannon = {
+			arm_bosscannon =  {
+				alphadecay = 0.02,
 				areaofeffect = 8,
 				avoidfeature = false,
-				avoidfriendly = false,
+				burnblow = true,
 
-				name = "Epic Shard Beamer",
-				range = 900,
-				reloadtime = 0.025,
+				craterareaofeffect = 0,
+				craterboost = 0,
+				cratermult = 0,
+
+				edgeeffectiveness = 0.9,
+
+				explosiongenerator = "custom:laserhit-beamer",
+				cegtag = "gauss-trail",
+
+				gravityaffected = "false",
+
+				impulsefactor = 1.5,
+				impulseboost = 1.0,
+
+				name = "Heavy Gauss Cannon",
+
+				nogap = false,
+				noselfdamage = true,
+
+				range = 730,
+				reloadtime = 1.6,
+
+				separation = 1.8,
+
+				size = 8,
+				sizedecay = 0.01,
+
+				soundhit = "xplosml2",
+				soundhitwet = "splshbig",
+				soundstart = "railgun",
+
+				stages = 10,
+
+				targetmoveerror = 0.05,  -- more accurate
+				tolerance = 8000,
+				turret = true,
 
 				weapontype = "Cannon",
 				turret = true,
 				weaponvelocity = 450,
 
-				projectiles = 10,
-				sprayangle = 350,
-
-				burst = 1,
-				burstrate = 0.0,
-
-				size = 0.8,
-				stages = 12,
-				separation = 0.5,
-
-				gravityaffected = false,
-				collidefriendly = false,
-				avoidfeature = false,
-
-				explosiongenerator = "custom:laserhit-beamer",
-				cegtag = "lightning_shard_trail",
-
-				rgbcolor = "0 0.8 1",
-				rgbcolor2 = "0.6 1 1",
-
-				soundstart = "beamershot2",
-				soundhitdry = "",
-				soundhitwet = "sizzle",
-				soundtrigger = 1,
-
-				tolerance = 10000,
-				firestarter = 30,
-				impulsefactor = 0,
-
+				customparams = {
+					exclude_preaim = true,
+					gauss_ground_ceg = "gauss-trail-groundhit",
+					gauss_ground_interval = 2,
+					gauss_ground_backoffset = 12,
+				},
 
 				damage = {
-					commanders = 40,
-					default = 260.6,
-					vtol = 2,
+					default = 675,
+					hvyboats = 472.5,
+					subs = 300,
+					vtol = 26,
 				},
 			},
 		},
-
 		weapons = {
 			[1] = {
-	badtargetcategory = "VTOL",
-	def = "ARM_BOSSCANNON",
-	onlytargetcategory = "NOTSUB",
-	fastautoretargeting = true,
-},
+				badtargetcategory = "VTOL",
+				def = "ARM_BOSSCANNON",
+				onlytargetcategory = "NOTSUB",
+				fastautoretargeting = true,
+			},
 		},
 	},
 }

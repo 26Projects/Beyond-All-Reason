@@ -11,6 +11,7 @@ static-var  ReadyToAim, gun_1, isMoving, isAiming, restore_delay, wpn1_lasthead,
 // Signal definitions
 #define SIGNAL_AIM1 256
 #define SIGNAL_MOVE 1
+#define SIGNAL_BUILD 4
 
 #include "../opencloseanim.h"
 
@@ -832,7 +833,24 @@ QueryWeapon1(pieceIndex)
 	pieceIndex = gun_1;
 }
 
+StartBuilding(heading, pitch)
+{
+	signal SIGNAL_BUILD;
+	set-signal-mask SIGNAL_BUILD;
+	set INBUILDSTANCE to 1;
+}
 
+StopBuilding()
+{
+	signal SIGNAL_BUILD;
+	set-signal-mask SIGNAL_BUILD;
+	set INBUILDSTANCE to 0;
+}
+
+QueryNanoPiece(pieceIndex)
+{
+	pieceIndex = body;
+}
 
 Killed(severity, corpsetype)
 {

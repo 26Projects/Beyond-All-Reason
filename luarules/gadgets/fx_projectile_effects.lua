@@ -135,6 +135,21 @@ for weaponID, weaponDef in pairs(WeaponDefs) do
 end
 
 -----------------------------------------------------------------------------------------
+local gaussGroundEffects = {}
+local gaussGroundEffectWeapons = {}
+
+for weaponID, weaponDef in pairs(WeaponDefs) do
+	local cp = weaponDef.customParams
+	if cp and cp.gauss_ground_ceg then
+		gaussGroundEffectWeapons[weaponID] = {
+			cp.gauss_ground_ceg,
+			tonumber(cp.gauss_ground_interval) or 2,
+			tonumber(cp.gauss_ground_backoffset) or 10,
+		}
+	end
+end
+
+-----------------------------------------------------------------------------------------
 local allWatchedWeaponDefIDs = {}
 local allWatchedProjectileIDs = {}
 
@@ -176,6 +191,11 @@ function gadget:Initialize()
 		allWatchedWeaponDefIDs[wDID] = "starburst"
 	end
 
+	for wDID, _ in pairs(gaussGroundEffectWeapons) do
+		Script.SetWatchProjectile(wDID, true)
+		allWatchedWeaponDefIDs[wDID] = "gaussGroundEffect"
+	end
+
 end
 
 function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID) --pre-opt mean 3.7 us
@@ -210,6 +230,8 @@ function gadget:ProjectileCreated(proID, proOwnerID, weaponDefID) --pre-opt mean
 			groundHeight + wData[9],
 			groundHeight + wData[10],
 		}
+	elseif watchedWeaponType == "gaussGroundEffect" then
+		gaussGroundEffects[proID] = gaussGroundEffectWeapons[weaponDefID]
 	end
 end
 
@@ -224,6 +246,8 @@ function gadget:ProjectileDestroyed(proID) --pre-opt mean 14 us
 			missileIDtoLifeEnd[proID] = nil
 		elseif watchedWeaponType == "starburst" then
 			starbursts[proID] = nil
+		elseif watchedWeaponType == "gaussGroundEffect" then
+			gaussGroundEffects[proID] = nil
 		end
 	end
 end
@@ -275,6 +299,35 @@ function gadget:GameFrame(gf)
 		local proID = removeMissile[i]
 		missileIDtoProjType[proID] = nil
 		missileIDtoLifeEnd[proID] = nil
+		allWatchedProjectileIDs[proID] = nil
+	end
+
+	local removeGaussGroundEffect
+	local removeGaussGroundEffectCount = 0
+	for proID, gaussGroundEffect in pairs(gaussGroundEffects) do
+		local interval = gaussGroundEffect[2]
+		if interval < 1 then
+			interval = 1
+		end
+		if gf % interval == 0 then
+			local x, y, z = GetProjectilePosition(proID)
+			if y then
+				local dirX, dirY, dirZ = GetProjectileDirection(proID)
+				local backOffset = gaussGroundEffect[3]
+				local spawnX = x - (dirX * backOffset)
+				local spawnZ = z - (dirZ * backOffset)
+				local groundHeight = GetGroundHeight(spawnX, spawnZ)
+				SpawnCEG(gaussGroundEffect[1], spawnX, groundHeight + 1, spawnZ, dirX, dirY, dirZ)
+			else
+				if not removeGaussGroundEffect then removeGaussGroundEffect = {} end
+				removeGaussGroundEffectCount = removeGaussGroundEffectCount + 1
+				removeGaussGroundEffect[removeGaussGroundEffectCount] = proID
+			end
+		end
+	end
+	for i = 1, removeGaussGroundEffectCount do
+		local proID = removeGaussGroundEffect[i]
+		gaussGroundEffects[proID] = nil
 		allWatchedProjectileIDs[proID] = nil
 	end
 
