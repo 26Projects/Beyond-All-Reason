@@ -108,7 +108,7 @@ return {
 
 				weapontype = "Cannon",
 				turret = true,
-				weaponvelocity = 850,
+				weaponvelocity = 450,
 
 				projectiles = 10,
 				sprayangle = 350,
