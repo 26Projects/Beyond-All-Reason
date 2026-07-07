@@ -26,7 +26,7 @@ return {
 		sightdistance = 520,
 		speed = 184.8,
 		turninplaceanglelimit = 360,
-		turnrate = 1400,
+		turnrate = 1600,
 		customparams = {
 			model_author = "FireStorm",
 			normaltex = "unittextures/Arm_normal.dds",
@@ -74,7 +74,7 @@ return {
 		weapondefs = {
 			emg = {
 				alphadecay = 0.08,
-				areaofeffect = 32,
+				areaofeffect = 64,
 				avoidfeature = false,
 				burnblow = true,
 				cegtag = "impulse-trail",			
@@ -98,7 +98,7 @@ return {
 				soundstartvolume = 24,
 				stages = 14,
 				targetmoveerror = 0.2,
-				tolerance = 6000,
+				tolerance = 2000,
 				turret = false,
 				weapontype = "Cannon",
 				weaponvelocity = 1090,
