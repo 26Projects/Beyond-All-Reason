@@ -88,7 +88,7 @@ return {
 				name = "Light A2G Guass Cannon",
 				nogap = false,
 				noselfdamage = true,
-				range = 425,
+				range = 400,
 				reloadtime = 3.0,
 				separation = 1.0,
 				sizedecay = 0.06,
