@@ -11,7 +11,7 @@ return {
 		explodeas = "mediumExplosionGeneric",
 		footprintx = 2,
 		footprintz = 2,
-		health = 3000,
+		health = 3500,
 		hoverattack = true,
 		idleautoheal = 5,
 		idletime = 1800,
@@ -74,7 +74,7 @@ return {
 		weapondefs = {
 			vtol_sabot = {
 				alphadecay = 0.08,
-				areaofeffect = 24,
+				areaofeffect = 96,
 				avoidfeature = false,
 				burst = 2,
 				burstrate = 0.15,
@@ -99,7 +99,7 @@ return {
 				soundstartvolume = 42,
 				stages = 14,
 				targetmoveerror = 0.2,
-				tolerance = 6000,
+				tolerance = 2000,
 				turret = true,
 				weapontype = "Cannon",
 				weaponvelocity = 1090,
@@ -107,7 +107,7 @@ return {
 					noattackrangearc = 1,
 				},
 				damage = {
-					default = 410,
+					default = 560,
 					vtol = 150,
 				},
 			},
