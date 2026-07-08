@@ -40,6 +40,7 @@ return {
 			[6] = "corawac",
 			[7] = "corseah",
 			[8] = "corcrwh",
+			[9] = "corsfig2",
 		},
 		customparams = {
 			airfactory = true,
