@@ -71,6 +71,31 @@ local empReworkUnitTweaks = empRework.UnitTweaks
 local empReworkWeaponTweaks = empRework.WeaponTweaks
 
 local scavWeaponDefPost = VFS.Include("gamedata/scavengers/weapondef_post.lua").scavWeaponDefPost
+local gaussSettings = VFS.Include("gamedata/gauss_weapons.lua")
+
+local function isGaussWeapon(unitDefName, weaponDefName, weaponDef)
+	local generatedName = string.lower(unitDefName .. "_" .. weaponDefName)
+	local baseGeneratedName = string.gsub(generatedName, "_scav_", "_", 1)
+	local exception = gaussSettings.weaponExceptions[generatedName]
+	if exception == nil then
+		exception = gaussSettings.weaponExceptions[baseGeneratedName]
+	end
+	if exception ~= nil then
+		return exception
+	end
+
+	local customParams = weaponDef.customparams
+	if customParams and customParams.gauss_light ~= nil then
+		local value = tostring(customParams.gauss_light):lower()
+		return value ~= "0" and value ~= "false"
+	end
+
+	local displayName = string.lower(weaponDef.name or "")
+	local cegTag = string.lower(weaponDef.cegtag or "")
+	return string.find(generatedName, "gauss", 1, true) ~= nil
+		or string.find(displayName, "gauss", 1, true) ~= nil
+		or string.find(cegTag, "gauss", 1, true) ~= nil
+end
 
 --[[ Sanitize to whole frames (plus leeways because float arithmetic is bonkers).
      The engine uses full frames for actual reload times, but forwards the raw
@@ -95,6 +120,14 @@ local function processWeapons(unitDefName, unitDef)
 
 		-- weaponDef is not processed by weapondefs_post, may not have some subtables:
 		table.ensureTable(weaponDef, "customparams")
+
+		if isGaussWeapon(unitDefName, weaponDefName, weaponDef) then
+			-- Preserve the old per-unit choice for debugging/opt-outs, but route the
+			-- visible projectile animation through the shared Gauss effect.
+			weaponDef.customparams.gauss_orig_cegtag = weaponDef.cegtag or ""
+			weaponDef.customparams.gauss_light = 1
+			weaponDef.cegtag = gaussSettings.cegTag
+		end
 
 		if weaponDef.customparams.cluster_def then
 			weaponDef.customparams.cluster_def = unitDefName .. "_" .. weaponDef.customparams.cluster_def

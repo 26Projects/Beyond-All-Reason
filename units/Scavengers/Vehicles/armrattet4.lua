@@ -110,8 +110,6 @@ return {
 				edgeeffectiveness = 0.9,
 
 				explosiongenerator = "custom:laserhit-beamer",
-				cegtag = "gauss-trail",
-
 				gravityaffected = "false",
 
 				impulsefactor = 1.5,
@@ -146,9 +144,6 @@ return {
 
 				customparams = {
 					exclude_preaim = true,
-					gauss_ground_ceg = "gauss-trail-groundhit",
-					gauss_ground_interval = 2,
-					gauss_ground_backoffset = 12,
 				},
 
 				damage = {

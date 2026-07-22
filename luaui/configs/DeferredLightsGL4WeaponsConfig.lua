@@ -153,6 +153,34 @@ local BaseClasses = {
 		},
 	},
 
+	-- Universal projectile light for Gauss weapons. Tune this class to update
+	-- every automatically detected Gauss weapon at once.
+	GaussProjectile = {
+		lightType = 'point',
+		-- Short-lived world-space lights left behind the projectile. These create
+		-- an irregular static-discharge flicker without spawning trail CEGs.
+		trailConfig = {
+			interval = 2,
+			chance = 0.8,
+			backOffset = 10,
+			jitter = 5,
+			radius = 42,
+			radiusJitter = 0.35,
+			r = 0.75, g = 0.42, b = 1.0, a = 0.16,
+			color2r = 0.18, color2g = 0.3, color2b = 1.0, colortime = 2,
+			intensityJitter = 0.55,
+			modelfactor = 0.08, specular = 0.12, scattering = 0.18, lensflare = 0,
+			lifetime = 6, sustain = 1, selfshadowing = 0,
+		},
+		lightConfig = {
+			posx = 0, posy = 0, posz = 0, radius = 90,
+			r = 1.0, g = 0.38, b = 0.82, a = 0.28,
+			color2r = 0.25, color2g = 0.28, color2b = 1.0, colortime = 12,
+			modelfactor = 0.12, specular = 0.25, scattering = 0.35, lensflare = 1,
+			lifetime = 0, sustain = 0, selfshadowing = 1,
+		},
+	},
+
 	FlameProjectileOld = {
 		lightType = 'point', -- or cone or beam
 		fraction = 2, -- only spawn every nth light
@@ -406,10 +434,38 @@ local projectileDefLights  = {
 	}
 }
 
+-- Shared with alldefs_post, which replaces per-unit Gauss CEG selections with
+-- the global projectile animation before the runtime WeaponDefs are created.
+local GaussSettings = VFS.Include("gamedata/gauss_weapons.lua")
+
+local function IsGaussWeapon(weaponDef)
+	local weaponName = string.lower(weaponDef.name or "")
+	local baseWeaponName = string.gsub(weaponName, "_scav_", "_", 1)
+	local exception = GaussSettings.weaponExceptions[weaponName]
+	if exception == nil then
+		exception = GaussSettings.weaponExceptions[baseWeaponName]
+	end
+	if exception ~= nil then
+		return exception
+	end
+
+	local customParams = weaponDef.customParams
+	if customParams and customParams.gauss_light ~= nil then
+		local value = tostring(customParams.gauss_light):lower()
+		return value ~= "0" and value ~= "false"
+	end
+
+	local cegTag = string.lower(weaponDef.cegTag or "")
+	local description = string.lower(weaponDef.description or "")
+	return string.find(weaponName, "gauss", 1, true) ~= nil
+		or string.find(cegTag, "gauss", 1, true) ~= nil
+		or string.find(description, "gauss", 1, true) ~= nil
+end
+
 -----------------------------------
 
 local function AssignLightsToAllWeapons()
-	for weaponID=1, #WeaponDefs do
+	for weaponID=0, #WeaponDefs do
 		local weaponDef = WeaponDefs[weaponID]
 		local damage = 100
 		for cat=0, #weaponDef.damages do
@@ -460,7 +516,12 @@ local function AssignLightsToAllWeapons()
 		-- 	r, g, b = 0.45, 1, 0.45
 		-- end
 
-		if weaponDef.type == 'BeamLaser' then
+		if IsGaussWeapon(weaponDef) then
+			local gaussRadius = math.max(GaussSettings.minimumRadius, radius * GaussSettings.sizeMultiplier)
+			sizeclass = GetClosestSizeClass(gaussRadius)
+			projectileDefLights[weaponID] = GetLightClass("GaussProjectile", nil, sizeclass)
+
+		elseif weaponDef.type == 'BeamLaser' then
 			--muzzleFlash = true -- doesnt work
 
 
@@ -746,47 +807,6 @@ AssignLightsToAllWeapons()
 local explosionLightsNames = {}
 local muzzleFlashLightsNames = {}
 local projectileDefLightsNames = {}
-
-muzzleFlashLightsNames["armrattet4_arm_bosscannon"] =
-	GetLightClass("MuzzleFlash", nil, "Pico", {
-		a = 0,
-		radius = 0,
-		lensflare = 0,
-		scattering = 0,
-		lifetime = 0,
-		sustain = 0,
-	})
-
-
-projectileDefLightsNames["armrattet4_arm_bosscannon"] =
-	GetLightClass("CannonProjectile", nil, "Pico", {
-		a = 0.01,
-		r = 0.04, g = 0.12, b = 0.35,
-		radius = 24,
-		modelfactor = 0.02,
-		specular = 0,
-		scattering = 0.01,
-		lensflare = 0,
-		selfshadowing = 0,
-		lifetime = 0,
-		sustain = 0,
-	})
-
-
-
-	Spring.Echo("=== RATTE T4 WEAPONDEF DEBUG ===")
-
-for name, wd in pairs(WeaponDefNames) do
-	if string.find(name, "rattet4") or string.find(name, "bosscannon") then
-		Spring.Echo("FOUND WEAPONDEF:", name, wd.id)
-	end
-end
-
-if WeaponDefNames["armrattet4_arm_bosscannon"] then
-	Spring.Echo("Override key is valid: armrattet4_arm_bosscannon")
-else
-	Spring.Echo("Override key NOT FOUND: armrattet4_arm_bosscannon")
-end
 
 --cortrem
 explosionLightsNames["cortrem_tremor_focus_fire"] =
