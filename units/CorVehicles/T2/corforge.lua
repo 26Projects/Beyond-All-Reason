@@ -17,7 +17,7 @@ return {
 		footprintx = 3,
 		footprintz = 3,
 		leavetracks = true,
-		health = 1800,
+		health = 1500,
 		speed = 50,
 		maxwaterdepth = 0,
 		movementclass = "TANK3",
@@ -51,7 +51,7 @@ return {
 			model_author = "MASHUP",
 			normaltex = "unittextures/cor_normal.dds",
 			subfolder = "CorVehicles/T2",
-			paralyzemultiplier = 0.04,
+			paralyzemultiplier = 1,
 			techlevel = 2,
 		},
 		featuredefs = {
