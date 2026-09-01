@@ -27,7 +27,7 @@ return {
 		seismicsignature = 0,
 		selfdestructas = "mediumExplosionGenericSelfd",
 		sightdistance = 451,
-		terraformspeed = 1250,
+		terraformspeed = 750,
 		trackoffset = 8,
 		trackstrength = 8,
 		tracktype = "corwidetracks",
