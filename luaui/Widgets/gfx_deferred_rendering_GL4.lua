@@ -470,6 +470,7 @@ local gameFrame = 0
 
 local trackedProjectiles = {} -- used for finding out which projectiles can be culled {projectileID = updateFrame, ...}
 local trackedProjectileTypes = {} -- we have to track the types [point, light, cone] of projectile lights for efficient updates
+local trackedProjectileLightDefs = {} -- projectile light definitions used by optional world-space trails
 local lastGameFrame = -2
 
 local LuaShader = gl.LuaShader
@@ -1989,6 +1990,62 @@ local function ShouldDelayProjectileLight(projectileLight, projectileID, py)
 	return false
 end
 
+local trailLightParams = {}
+local function SpawnProjectileTrailLight(projectileID, projectileLight, px, py, pz, dx, dy, dz, noUpload)
+	local trail = projectileLight and projectileLight.trailConfig
+	if not trail then
+		return
+	end
+
+	local interval = mathMax(1, trail.interval or 1)
+	if (gameFrame + projectileID) % interval ~= 0 or mathRandom() > (trail.chance or 1) then
+		return
+	end
+
+	local speed = mathSqrt(dx * dx + dy * dy + dz * dz)
+	if speed > 0 then
+		local backOffset = trail.backOffset or 0
+		px = px - (dx / speed) * backOffset
+		py = py - (dy / speed) * backOffset
+		pz = pz - (dz / speed) * backOffset
+	end
+
+	local jitter = trail.jitter or 0
+	px = px + (mathRandom() * 2 - 1) * jitter
+	py = py + (mathRandom() * 2 - 1) * jitter
+	pz = pz + (mathRandom() * 2 - 1) * jitter
+
+	local radiusScale = 1 + (mathRandom() * 2 - 1) * (trail.radiusJitter or 0)
+	local intensityScale = 1 - mathRandom() * (trail.intensityJitter or 0)
+	trailLightParams[1], trailLightParams[2], trailLightParams[3] = px, py, pz
+	trailLightParams[4] = (trail.radius or 40) * radiusScale
+	trailLightParams[5], trailLightParams[6], trailLightParams[7], trailLightParams[8] = 0, 0, 0, 0
+	trailLightParams[9], trailLightParams[10], trailLightParams[11] = trail.r or 1, trail.g or 1, trail.b or 1
+	trailLightParams[12] = (trail.a or 1) * intensityScale
+	trailLightParams[13], trailLightParams[14], trailLightParams[15], trailLightParams[16] =
+		trail.modelfactor or 1,
+		trail.specular or 1,
+		trail.scattering or 1,
+		trail.lensflare or 0
+	trailLightParams[17], trailLightParams[18], trailLightParams[19], trailLightParams[20] =
+		gameFrame,
+		trail.lifetime or 6,
+		trail.sustain or 1,
+		trail.selfshadowing or 0
+	trailLightParams[21], trailLightParams[22], trailLightParams[23], trailLightParams[24] =
+		trail.color2r or 0,
+		trail.color2g or 0,
+		trail.color2b or 0,
+		trail.colortime or 0
+	trailLightParams[25], trailLightParams[26], trailLightParams[27], trailLightParams[28], trailLightParams[29] =
+		0,
+		0,
+		0,
+		0,
+		0
+	AddLight(nil, nil, nil, pointLightVBO, trailLightParams, noUpload)
+end
+
 local function updateProjectileLights(newgameframe)
 	local nowprojectiles = Spring.GetVisibleProjectiles()
 	gameFrame = spGetGameFrame()
@@ -2012,8 +2069,8 @@ local function updateProjectileLights(newgameframe)
 				if newgameframe then
 					--update proj pos
 					lightType = trackedProjectileTypes[projectileID]
+					local dx, dy, dz = spGetProjectileVelocity(projectileID)
 					if lightType ~= "beam" then
-						local dx, dy, dz = spGetProjectileVelocity(projectileID)
 						local instanceIndex = updateLightPosition(
 							projectileLightVBOMap[lightType],
 							projectileID,
@@ -2029,6 +2086,17 @@ local function updateProjectileLights(newgameframe)
 							spEcho("Updated", instanceIndex, projectileID, px, py, pz, dx, dy, dz)
 						end
 					end
+					SpawnProjectileTrailLight(
+						projectileID,
+						trackedProjectileLightDefs[projectileID],
+						px,
+						py,
+						pz,
+						dx,
+						dy,
+						dz,
+						noUpload
+					)
 				end
 			else
 				-- add projectile
@@ -2075,6 +2143,8 @@ local function updateProjectileLights(newgameframe)
 						end
 
 						AddLight(projectileID, nil, nil, projectileLightVBOMap[lightType], lightParamTable, noUpload)
+						trackedProjectileLightDefs[projectileID] = projectileLight
+						SpawnProjectileTrailLight(projectileID, projectileLight, px, py, pz, dx, dy, dz, noUpload)
 						--AddLight(projectileID, nil, nil, projectilePointLightVBO, lightParamTable)
 					else
 						--spEcho("No projectile light defined for", projectileID, weaponDefID, px, pz)
@@ -2124,6 +2194,7 @@ local function updateProjectileLights(newgameframe)
 					end
 				end
 				trackedProjectileTypes[projectileID] = nil
+				trackedProjectileLightDefs[projectileID] = nil
 			end
 		end
 	end
@@ -2132,6 +2203,9 @@ local function updateProjectileLights(newgameframe)
 		if targetVBO.dirty then
 			uploadAllElements(targetVBO)
 		end
+	end
+	if pointLightVBO.dirty then
+		uploadAllElements(pointLightVBO)
 	end
 	--if debugproj then
 	--	spEcho("#points", projectilePointLightVBO.usedElements, '#projs', #nowprojectiles )

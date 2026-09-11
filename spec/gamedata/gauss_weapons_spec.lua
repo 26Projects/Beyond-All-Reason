@@ -1,0 +1,20 @@
+local gaussSettings = VFS.Include("gamedata/gauss_weapons.lua")
+
+describe("Gauss weapon classification", function()
+	it("classifies detected weapons by default damage", function()
+		assert.equals("Tiny", gaussSettings.GetSize("test_gauss", nil, nil, nil, 100))
+		assert.equals("Small", gaussSettings.GetSize("test_gauss", nil, nil, nil, 250))
+		assert.equals("Medium", gaussSettings.GetSize("test_gauss", nil, nil, nil, 600))
+		assert.equals("Big", gaussSettings.GetSize("test_gauss", nil, nil, nil, 601))
+	end)
+
+	it("honors configured weapon exceptions and scavenger names", function()
+		assert.equals("Big", gaussSettings.GetSize("armpb_armpb_weapon", nil, nil, nil, 1))
+		assert.equals("Big", gaussSettings.GetSize("armpb_scav_armpb_weapon", nil, nil, nil, 1))
+	end)
+
+	it("supports explicit per-weapon overrides and opt-outs", function()
+		assert.equals("Medium", gaussSettings.GetSize("test_weapon", nil, nil, { gauss_size = "Medium" }, 1))
+		assert.is_nil(gaussSettings.GetSize("test_gauss", nil, nil, { gauss_light = false }, 1000))
+	end)
+end)

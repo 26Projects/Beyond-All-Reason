@@ -301,6 +301,55 @@ local BaseClasses = {
 		},
 	},
 
+	GaussProjectile = {
+		lightType = "point",
+		trailConfig = {
+			interval = 2,
+			chance = 0.8,
+			backOffset = 11,
+			jitter = 5,
+			radius = 42,
+			radiusJitter = 0.35,
+			r = 0.75,
+			g = 0.42,
+			b = 1.0,
+			a = 0.16,
+			color2r = 0.18,
+			color2g = 0.30,
+			color2b = 1.0,
+			colortime = 2,
+			intensityJitter = 0.55,
+			modelfactor = 0.08,
+			specular = 0.12,
+			scattering = 0.18,
+			lensflare = 0,
+			lifetime = 6,
+			sustain = 1,
+			selfshadowing = 0,
+		},
+		lightConfig = {
+			posx = 0,
+			posy = 0,
+			posz = 0,
+			radius = 90,
+			r = 0.78,
+			g = 0.42,
+			b = 1.0,
+			a = 0.22,
+			color2r = 0.18,
+			color2g = 0.30,
+			color2b = 1.0,
+			colortime = 12,
+			modelfactor = 0.12,
+			specular = 0.25,
+			scattering = 0.35,
+			lensflare = 1,
+			lifetime = 0,
+			sustain = 0,
+			selfshadowing = 1,
+		},
+	},
+
 	FlameProjectile = {
 		lightType = "point", -- or cone or beam
 		fraction = 3, -- only spawn every nth light
@@ -641,6 +690,19 @@ local projectileDefLights = {
 	},
 }
 
+local gaussSettings = VFS.Include("gamedata/gauss_weapons.lua")
+
+local function getGaussSize(weaponDef)
+	local defaultDamage = weaponDef.damages and weaponDef.damages[0]
+	return gaussSettings.GetSize(
+		weaponDef.name,
+		weaponDef.description,
+		weaponDef.cegTag,
+		weaponDef.customParams,
+		defaultDamage
+	)
+end
+
 -----------------------------------
 
 local function AssignLightsToAllWeapons()
@@ -697,7 +759,15 @@ local function AssignLightsToAllWeapons()
 		-- 	r, g, b = 0.45, 1, 0.45
 		-- end
 
-		if weaponDef.type == "BeamLaser" then
+		local gaussSize = getGaussSize(weaponDef)
+		if gaussSize then
+			local gaussClass = gaussSettings.classes[gaussSize]
+			projectileDefLights[weaponID] = GetLightClass("GaussProjectile", nil, nil, gaussClass.light)
+			for key, value in pairs(gaussClass.trail) do
+				projectileDefLights[weaponID].trailConfig[key] = value
+			end
+
+		elseif weaponDef.type == "BeamLaser" then
 			--muzzleFlash = true -- doesn't work
 
 			if not weaponDef.paralyzer then

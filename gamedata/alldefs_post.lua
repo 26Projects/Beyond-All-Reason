@@ -69,6 +69,18 @@ local empReworkUnitTweaks = empRework.UnitTweaks
 local empReworkWeaponTweaks = empRework.WeaponTweaks
 
 local scavWeaponDefPost = VFS.Include("gamedata/scavengers/weapondef_post.lua").scavWeaponDefPost
+local gaussSettings = VFS.Include("gamedata/gauss_weapons.lua")
+
+local function getGaussSize(unitDefName, weaponDefName, weaponDef)
+	local generatedName = string.lower(unitDefName .. "_" .. weaponDefName)
+	return gaussSettings.GetSize(
+		generatedName,
+		weaponDef.name,
+		weaponDef.cegtag,
+		weaponDef.customparams,
+		weaponDef.damage and weaponDef.damage.default
+	)
+end
 
 --[[ Sanitize to whole frames (plus leeways because float arithmetic is bonkers).
      The engine uses full frames for actual reload times, but forwards the raw
@@ -93,6 +105,14 @@ local function processWeapons(unitDefName, unitDef)
 
 		-- weaponDef is not processed by weapondefs_post, may not have some subtables:
 		table.ensureTable(weaponDef, "customparams")
+
+		local gaussSize = getGaussSize(unitDefName, weaponDefName, weaponDef)
+		if gaussSize then
+			weaponDef.customparams.gauss_orig_cegtag = weaponDef.cegtag or ""
+			weaponDef.customparams.gauss_light = 1
+			weaponDef.customparams.gauss_size = gaussSize
+			weaponDef.cegtag = gaussSettings.classes[gaussSize].cegTag
+		end
 
 		if weaponDef.customparams.cluster_def then
 			weaponDef.customparams.cluster_def = unitDefName .. "_" .. weaponDef.customparams.cluster_def

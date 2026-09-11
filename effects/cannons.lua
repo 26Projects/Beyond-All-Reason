@@ -896,6 +896,13 @@ local definitions = {
 }
 
 -- add purple scavenger variants
+-- Placeholder Gauss size variants. They intentionally use the existing impulse
+-- trail until the dedicated Gauss CEGs are authored.
+definitions["gauss-trail-tiny"] = table.copy(definitions["impulse-trail"])
+definitions["gauss-trail-small"] = table.copy(definitions["impulse-trail"])
+definitions["gauss-trail-medium"] = table.copy(definitions["impulse-trail"])
+definitions["gauss-trail-big"] = table.copy(definitions["impulse-trail"])
+
 local scavengerDefs = {}
 for k, v in pairs(definitions) do
 	scavengerDefs[k .. "-purple"] = table.copy(definitions[k])
