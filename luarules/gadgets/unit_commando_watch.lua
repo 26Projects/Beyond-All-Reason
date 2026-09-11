@@ -21,7 +21,10 @@ end
 
 local MAPSIZEX = Game.mapSizeX
 local MAPSIZEZ = Game.mapSizeZ
+local CMD_GUARD = CMD.GUARD
+local CMD_REPAIR = CMD.REPAIR
 local mines = {}
+local constructionBuilder = {}
 local MINE_BLAST = {}
 MINE_BLAST[WeaponDefNames.mine_light.id] = true
 MINE_BLAST[WeaponDefNames.mine_medium.id] = true
@@ -31,6 +34,7 @@ local isMine = {}
 local isParatrooper = {}
 local isMineResistant = {}
 local isStealthsTransport = {}
+local isSelfOnlyAssist = {}
 for udid, ud in pairs(UnitDefs) do
 	local cp = ud.customParams
 	if cp.mine then
@@ -45,6 +49,14 @@ for udid, ud in pairs(UnitDefs) do
 	if cp.stealths_transport then
 		isStealthsTransport[udid] = true
 	end
+	if cp.self_only_assist then
+		isSelfOnlyAssist[udid] = true
+	end
+end
+
+function gadget:Initialize()
+	gadgetHandler:RegisterAllowCommand(CMD_GUARD)
+	gadgetHandler:RegisterAllowCommand(CMD_REPAIR)
 end
 
 function gadget:UnitPreDamaged(
@@ -80,14 +92,58 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 	if builderID and isMine[unitDefID] and isMineResistant[Spring.GetUnitDefID(builderID)] then
 		mines[unitID] = builderID
 	end
+	if builderID and isSelfOnlyAssist[Spring.GetUnitDefID(builderID)] then
+		constructionBuilder[unitID] = builderID
+	end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	mines[unitID] = nil
+	constructionBuilder[unitID] = nil
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	mines[unitID] = nil
+	constructionBuilder[unitID] = nil
+end
+
+function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams)
+	if not isSelfOnlyAssist[unitDefID] then
+		return true
+	end
+
+	if cmdID == CMD_GUARD then
+		return false
+	end
+
+	if cmdID ~= CMD_REPAIR then
+		return true
+	end
+
+	-- Area repair could select another builder's nanoframe, so only permit
+	-- direct unit repair commands for this restricted builder.
+	if #cmdParams ~= 1 and #cmdParams ~= 5 then
+		return false
+	end
+
+	local targetID = cmdParams[1]
+	if not targetID or not Spring.GetUnitIsBeingBuilt(targetID) then
+		return true
+	end
+
+	return constructionBuilder[targetID] == unitID
+end
+
+function gadget:AllowUnitBuildStep(builderID, builderTeam, unitID, unitDefID, part)
+	if part <= 0 or not isSelfOnlyAssist[Spring.GetUnitDefID(builderID)] then
+		return true
+	end
+
+	if not Spring.GetUnitIsBeingBuilt(unitID) then
+		return true
+	end
+
+	return constructionBuilder[unitID] == builderID
 end
 
 function gadget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
