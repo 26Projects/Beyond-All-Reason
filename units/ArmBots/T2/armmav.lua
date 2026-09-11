@@ -46,7 +46,7 @@ return {
 		workertime = 200,
 		buildoptions = {
 			[1] = "armatlas",
-			[2] = "armpeep",
+			[2] = "armflea",
 			[3] = "armmine1",
 			[4] = "armmine2",
 			[5] = "armdrag",
