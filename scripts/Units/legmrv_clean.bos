@@ -77,6 +77,21 @@ SetMaxReloadTime(reloadMS)
 	return (0);
 }
 
+StartBuilding(heading, pitch)
+{
+	set INBUILDSTANCE to 1;
+}
+
+StopBuilding()
+{
+	set INBUILDSTANCE to 0;
+}
+
+QueryNanoPiece(pieceIndex)
+{
+	pieceIndex = aimfrom;
+}
+
 
 Steering(heading, steery, currentSpeed)
 {

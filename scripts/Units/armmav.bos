@@ -759,6 +759,21 @@ SetMaxReloadTime(reloadMS)
 	restore_delay = reloadMS * 2;
 }
 
+StartBuilding(heading, pitch)
+{
+	set INBUILDSTANCE to 1;
+}
+
+StopBuilding()
+{
+	set INBUILDSTANCE to 0;
+}
+
+QueryNanoPiece(pieceIndex)
+{
+	pieceIndex = body;
+}
+
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
