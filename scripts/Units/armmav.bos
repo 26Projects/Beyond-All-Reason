@@ -5,7 +5,7 @@ piece  rflare, lflare, body, pelvis, rthigh, lthigh, rleg, head,
        luparm, ruparm, lloarm, rloarm, lleg, lhipgun, rhipgun, lholster, rhandgun, lhandgun,
        rholster, rfoot, lfoot, aimy1, aimx1;
 
-static-var  ReadyToAim, gun_1, isMoving, isAiming, restore_delay, wpn1_lasthead,
+static-var  ReadyToAim, gun_1, isMoving, isAiming, isParadropping, restore_delay, wpn1_lasthead,
 			animSpeed, maxSpeed, animFramesPerKeyframe;
 
 // Signal definitions
@@ -448,13 +448,41 @@ StartMoving(reversing){
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
 	isMoving=TRUE;
-	start-script UnitSpeed();
-	start-script Walk();
+	if (!isParadropping) {
+		start-script UnitSpeed();
+		start-script Walk();
+	}
 }
 StopMoving(){
 	signal SIGNAL_MOVE;
 	isMoving=FALSE;
-	call-script StopWalking();
+	if (!isParadropping) {
+		call-script StopWalking();
+	}
+}
+
+StartParadropPose(){
+	signal SIGNAL_MOVE;
+	isParadropping=TRUE;
+
+	turn lthigh to x-axis <-90.0> speed <720.0>;
+	turn rthigh to x-axis <-90.0> speed <720.0>;
+	turn lleg to x-axis <90.0> speed <720.0>;
+	turn rleg to x-axis <90.0> speed <720.0>;
+	turn luparm to x-axis <-90.0> speed <720.0>;
+	turn ruparm to x-axis <-90.0> speed <720.0>;
+	turn lloarm to x-axis <-90.0> speed <720.0>;
+	turn rloarm to x-axis <-90.0> speed <720.0>;
+}
+
+EndParadropPose(){
+	isParadropping=FALSE;
+	if (isMoving) {
+		start-script UnitSpeed();
+		start-script Walk();
+	} else {
+		call-script StopWalking();
+	}
 }
 
 ready2()
@@ -744,6 +772,7 @@ Create()
 	hide aimy1;
 	isMoving = FALSE;
 	isAiming = FALSE;
+	isParadropping = FALSE;
 	gun_1 = rflare;
 	ReadyToAim = 0;
 	animspeed = 4;

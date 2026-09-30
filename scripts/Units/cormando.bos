@@ -17,7 +17,7 @@ lua_UnitScriptDecal(lightIndex, xpos,zpos, heading)
 }
 
 static-var  NOT_DEPLOYED, DEPLOYED, DEPLOYING;
-static-var  isMoving, spray, restore_delay, torsoRotation, lastHeading, lastPitch, lastWorldHeading, lastTargetID, deploy_state, aimReady;
+static-var  isMoving, isParadropping, spray, restore_delay, torsoRotation, lastHeading, lastPitch, lastWorldHeading, lastTargetID, deploy_state, aimReady;
 // Generated for N:\animations\cormando_anim_walk.blend
 // Using https://github.com/Beherith/Skeletor_S3O 
 // this animation uses the static-var animFramesPerKeyframe which contains how many frames each keyframe takes
@@ -306,12 +306,41 @@ StartMoving(reversing){
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
 	isMoving=TRUE;
-	start-script Walk();
-	start-script UnitSpeed();
+	if (!isParadropping) {
+		start-script Walk();
+		start-script UnitSpeed();
+	}
 }
 StopMoving(){
 	signal SIGNAL_MOVE;
-	call-script StopWalking();
+	isMoving=FALSE;
+	if (!isParadropping) {
+		call-script StopWalking();
+	}
+}
+
+StartParadropPose(){
+	signal SIGNAL_MOVE;
+	isParadropping=TRUE;
+
+	turn lthigh to x-axis <-90.0> speed <720.0>;
+	turn rthigh to x-axis <-90.0> speed <720.0>;
+	turn lleg to x-axis <90.0> speed <720.0>;
+	turn rleg to x-axis <90.0> speed <720.0>;
+	turn luparm to x-axis <-90.0> speed <720.0>;
+	turn ruparm to x-axis <-90.0> speed <720.0>;
+	turn larm to x-axis <-90.0> speed <720.0>;
+	turn rarm to x-axis <-90.0> speed <720.0>;
+}
+
+EndParadropPose(){
+	isParadropping=FALSE;
+	if (isMoving) {
+		start-script Walk();
+		start-script UnitSpeed();
+	} else {
+		call-script StopWalking();
+	}
 }
 
 #define BASEPIECE pelvis
@@ -349,6 +378,7 @@ Create()
 	hide flare;
 	hide aimy1;
 	isMoving = FALSE;
+	isParadropping = FALSE;
 	torsoRotation = 0;
 	lastHeading = 0;
 	lastPitch = 0;

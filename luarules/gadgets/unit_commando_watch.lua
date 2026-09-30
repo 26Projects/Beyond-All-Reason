@@ -21,7 +21,8 @@ end
 
 local MAPSIZEX = Game.mapSizeX
 local MAPSIZEZ = Game.mapSizeZ
-local PARADROP_ROLL_PER_FRAME = math.rad(-360) / Game.gameSpeed
+local PARADROP_ROLL_PER_FRAME = math.rad(-1080) / Game.gameSpeed
+local PARADROP_MAX_FALL_SPEED = -1.25
 local MIN_PARADROP_HORIZONTAL_SPEED_SQ = 0.01
 local CMD_GUARD = CMD.GUARD
 local CMD_REPAIR = CMD.REPAIR
@@ -72,6 +73,7 @@ local function StopParadropAnimation(unitID)
 	end
 
 	fallingParatroopers[unitID] = nil
+	Spring.CallCOBScript(unitID, "EndParadropPose", 0)
 	Spring.SetUnitRotation(unitID, 0, data.originalYaw, 0)
 end
 
@@ -207,6 +209,7 @@ function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 				yaw = yaw or 0,
 				roll = roll or 0,
 			}
+			Spring.CallCOBScript(unitID, "StartParadropPose", 0)
 		end
 	end
 	if isStealthsTransport[unitDefID] then
@@ -224,7 +227,11 @@ function gadget:GameFrame(frame)
 				fallingParatroopers[unitID] = nil
 			end
 		else
-			local velocityX, _, velocityZ = Spring.GetUnitVelocity(unitID)
+			local velocityX, velocityY, velocityZ = Spring.GetUnitVelocity(unitID)
+			if velocityY < PARADROP_MAX_FALL_SPEED then
+				velocityY = PARADROP_MAX_FALL_SPEED
+				Spring.SetUnitVelocity(unitID, velocityX, velocityY, velocityZ)
+			end
 			if velocityX and ((velocityX * velocityX) + (velocityZ * velocityZ) > MIN_PARADROP_HORIZONTAL_SPEED_SQ) then
 				data.yaw = math.atan2(velocityX, velocityZ)
 			end
