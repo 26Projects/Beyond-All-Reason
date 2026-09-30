@@ -21,7 +21,6 @@ end
 
 local MAPSIZEX = Game.mapSizeX
 local MAPSIZEZ = Game.mapSizeZ
-local PARADROP_ROLL_PER_FRAME = math.rad(-1080) / Game.gameSpeed
 local PARADROP_MAX_FALL_SPEED = -1.25
 local MIN_PARADROP_HORIZONTAL_SPEED_SQ = 0.01
 local CMD_GUARD = CMD.GUARD
@@ -202,12 +201,10 @@ function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 	if hasParadropAnimation[unitDefID] then
 		local x, y, z = Spring.GetUnitPosition(unitID)
 		if x and y - Spring.GetGroundHeight(x, z) > 5 then
-			local pitch, yaw, roll = Spring.GetUnitRotation(unitID)
+			local _, yaw = Spring.GetUnitRotation(unitID)
 			fallingParatroopers[unitID] = {
-				pitch = pitch or 0,
 				originalYaw = yaw or 0,
 				yaw = yaw or 0,
-				roll = roll or 0,
 			}
 			Spring.CallCOBScript(unitID, "StartParadropPose", 0)
 		end
@@ -235,8 +232,7 @@ function gadget:GameFrame(frame)
 			if velocityX and ((velocityX * velocityX) + (velocityZ * velocityZ) > MIN_PARADROP_HORIZONTAL_SPEED_SQ) then
 				data.yaw = math.atan2(velocityX, velocityZ)
 			end
-			data.pitch = data.pitch + PARADROP_ROLL_PER_FRAME
-			Spring.SetUnitRotation(unitID, data.pitch, data.yaw, data.roll)
+			Spring.SetUnitRotation(unitID, 0, data.yaw, 0)
 		end
 	end
 end

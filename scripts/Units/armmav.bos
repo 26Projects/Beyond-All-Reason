@@ -465,6 +465,7 @@ StartParadropPose(){
 	signal SIGNAL_MOVE;
 	isParadropping=TRUE;
 
+	spin pelvis around x-axis speed <-1080.0> accelerate <2160.0>;
 	turn lthigh to x-axis <-90.0> speed <720.0>;
 	turn rthigh to x-axis <-90.0> speed <720.0>;
 	turn lleg to x-axis <90.0> speed <720.0>;
@@ -483,6 +484,8 @@ EndParadropPose(){
 	} else {
 		call-script StopWalking();
 	}
+	stop-spin pelvis around x-axis;
+	turn pelvis to x-axis <0.0> speed <2160.0>;
 }
 
 ready2()
