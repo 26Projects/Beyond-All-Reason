@@ -21,7 +21,7 @@ end
 
 local MAPSIZEX = Game.mapSizeX
 local MAPSIZEZ = Game.mapSizeZ
-local PARADROP_ROLL_PER_FRAME = math.rad(360) / Game.gameSpeed
+local PARADROP_ROLL_PER_FRAME = math.rad(-360) / Game.gameSpeed
 local MIN_PARADROP_HORIZONTAL_SPEED_SQ = 0.01
 local CMD_GUARD = CMD.GUARD
 local CMD_REPAIR = CMD.REPAIR
