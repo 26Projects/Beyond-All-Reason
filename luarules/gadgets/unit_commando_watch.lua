@@ -231,6 +231,7 @@ function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 				if parachuteID then
 					data.parachuteID = parachuteID
 					Spring.SetUnitNeutral(parachuteID, true)
+					Spring.SetUnitBlocking(parachuteID, false, false, false, false, false, false, false)
 					Spring.SetUnitNoMinimap(parachuteID, true)
 					Spring.SetUnitNoSelect(parachuteID, true)
 					Spring.UnitAttach(unitID, parachuteID, pieceNum, true)
