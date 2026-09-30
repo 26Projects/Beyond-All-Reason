@@ -57,6 +57,7 @@ return {
 			model_author = "Flaka",
 			normaltex = "unittextures/Arm_normal.dds",
 			paradrop_animation = true,
+			paradrop_piece = "rloarm",
 			paralyzemultiplier = 0,
 			paratrooper = true,
 			rangexpscale = 0.6,

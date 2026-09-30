@@ -23,6 +23,7 @@ local MAPSIZEX = Game.mapSizeX
 local MAPSIZEZ = Game.mapSizeZ
 local PARADROP_MAX_FALL_SPEED = -1.25
 local MIN_PARADROP_HORIZONTAL_SPEED_SQ = 0.01
+local PARACHUTE_UNIT_NAME = "paradrop_parachute"
 local CMD_GUARD = CMD.GUARD
 local CMD_REPAIR = CMD.REPAIR
 local mines = {}
@@ -60,10 +61,19 @@ end
 local isMine = {}
 local isParatrooper = {}
 local hasParadropAnimation = {}
+local paradropPiece = {}
 local isMineResistant = {}
 local isStealthsTransport = {}
 local isSelfOnlyAssist = {}
 local fallingParatroopers = {}
+
+local function DestroyParachute(data)
+	if data and data.parachuteID then
+		Spring.UnitDetach(data.parachuteID)
+		Spring.DestroyUnit(data.parachuteID, false, true)
+		data.parachuteID = nil
+	end
+end
 
 local function StopParadropAnimation(unitID)
 	local data = fallingParatroopers[unitID]
@@ -72,6 +82,7 @@ local function StopParadropAnimation(unitID)
 	end
 
 	fallingParatroopers[unitID] = nil
+	DestroyParachute(data)
 	Spring.CallCOBScript(unitID, "EndParadropPose", 0)
 	Spring.SetUnitRotation(unitID, 0, data.originalYaw, 0)
 end
@@ -86,6 +97,7 @@ for udid, ud in pairs(UnitDefs) do
 	end
 	if cp.paradrop_animation then
 		hasParadropAnimation[udid] = true
+		paradropPiece[udid] = cp.paradrop_piece
 	end
 	if cp.mine_resistant then
 		isMineResistant[udid] = true
@@ -143,7 +155,9 @@ end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	mines[unitID] = nil
+	local paradropData = fallingParatroopers[unitID]
 	fallingParatroopers[unitID] = nil
+	DestroyParachute(paradropData)
 	ClearConstructionBuilder(unitID)
 
 	local constructions = builderConstructions[unitID]
@@ -202,11 +216,26 @@ function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 		local x, y, z = Spring.GetUnitPosition(unitID)
 		if x and y - Spring.GetGroundHeight(x, z) > 5 then
 			local _, yaw = Spring.GetUnitRotation(unitID)
-			fallingParatroopers[unitID] = {
+			local data = {
 				originalYaw = yaw or 0,
 				yaw = yaw or 0,
 			}
+			fallingParatroopers[unitID] = data
 			Spring.CallCOBScript(unitID, "StartParadropPose", 0)
+
+			local pieceName = paradropPiece[unitDefID]
+			local pieceMap = pieceName and Spring.GetUnitPieceMap(unitID)
+			local pieceNum = pieceMap and pieceMap[pieceName]
+			if pieceNum then
+				local parachuteID = Spring.CreateUnit(PARACHUTE_UNIT_NAME, x, y, z, 0, teamID)
+				if parachuteID then
+					data.parachuteID = parachuteID
+					Spring.SetUnitNeutral(parachuteID, true)
+					Spring.SetUnitNoMinimap(parachuteID, true)
+					Spring.SetUnitNoSelect(parachuteID, true)
+					Spring.UnitAttach(unitID, parachuteID, pieceNum, true)
+				end
+			end
 		end
 	end
 	if isStealthsTransport[unitDefID] then
@@ -222,6 +251,7 @@ function gadget:GameFrame(frame)
 				StopParadropAnimation(unitID)
 			else
 				fallingParatroopers[unitID] = nil
+				DestroyParachute(data)
 			end
 		else
 			local velocityX, velocityY, velocityZ = Spring.GetUnitVelocity(unitID)
