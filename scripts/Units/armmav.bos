@@ -5,7 +5,7 @@ piece  rflare, lflare, body, pelvis, rthigh, lthigh, rleg, head,
        luparm, ruparm, lloarm, rloarm, lleg, lhipgun, rhipgun, lholster, rhandgun, lhandgun,
        rholster, rfoot, lfoot, aimy1, aimx1;
 
-static-var  ReadyToAim, gun_1, isMoving, isAiming, isParadropping, restore_delay, wpn1_lasthead,
+static-var  ReadyToAim, gun_1, isMoving, isAiming, restore_delay, wpn1_lasthead,
 			animSpeed, maxSpeed, animFramesPerKeyframe;
 
 // Signal definitions
@@ -448,64 +448,13 @@ StartMoving(reversing){
 	signal SIGNAL_MOVE;
 	set-signal-mask SIGNAL_MOVE;
 	isMoving=TRUE;
-	if (!isParadropping) {
-		start-script UnitSpeed();
-		start-script Walk();
-	}
+	start-script UnitSpeed();
+	start-script Walk();
 }
 StopMoving(){
 	signal SIGNAL_MOVE;
 	isMoving=FALSE;
-	if (!isParadropping) {
-		call-script StopWalking();
-	}
-}
-
-// Recreates the Commando's tumbling appearance while the unit is falling.
-StartParadrop(){
-	signal SIGNAL_MOVE;
-	isParadropping=TRUE;
-
-	spin pelvis around x-axis speed <240.0> accelerate <480.0>;
-	move pelvis to y-axis [-0.110000] speed [15.634174];
-	turn body to x-axis <3.600000> speed <39.599996>;
-	turn head to x-axis <0.0> speed <30.0>;
-	turn head to y-axis <0.0> speed <67.856251>;
-	turn lfoot to x-axis <2.898411> speed <259.854887>;
-	turn lfoot to y-axis <7.332056> speed <44.146456>;
-	turn lfoot to z-axis <6.657026> speed <39.704226>;
-	turn lleg to x-axis <4.157608> speed <474.470422>;
-	turn lthigh to x-axis <-3.575574> speed <350.224101>;
-	turn lthigh to y-axis <15.335650> speed <95.196124>;
-	turn lthigh to z-axis <-2.761613> speed <155.361810>;
-	turn rfoot to x-axis <-5.438029> speed <384.581663>;
-	turn rfoot to y-axis <1.842044> speed <11.059400>;
-	turn rfoot to z-axis <-5.031955> speed <30.188859>;
-	turn rleg to x-axis <15.604850> speed <502.693008>;
-	turn rthigh to x-axis <-10.933654> speed <286.607233>;
-	turn rthigh to y-axis <-18.287417> speed <177.592230>;
-	turn rthigh to z-axis <7.126345> speed <175.483238>;
-
-	if (!isAiming) {
-		turn luparm to x-axis <-2.568530> speed <160.935860>;
-		turn luparm to y-axis <2.482817> speed <114.418876>;
-		turn luparm to z-axis <-8.202683> speed <53.485110>;
-		turn ruparm to x-axis <-3.657314> speed <153.975932>;
-		turn ruparm to y-axis <-3.864772> speed <118.035038>;
-		turn ruparm to z-axis <13.726872> speed <63.174977>;
-	}
-}
-
-EndParadrop(){
-	isParadropping=FALSE;
-	stop-spin pelvis around x-axis;
-	turn pelvis to x-axis <0.0> speed <720.0>;
-	if (isMoving) {
-		start-script UnitSpeed();
-		start-script Walk();
-	} else {
-		call-script StopWalking();
-	}
+	call-script StopWalking();
 }
 
 ready2()
@@ -795,7 +744,6 @@ Create()
 	hide aimy1;
 	isMoving = FALSE;
 	isAiming = FALSE;
-	isParadropping = FALSE;
 	gun_1 = rflare;
 	ReadyToAim = 0;
 	animspeed = 4;

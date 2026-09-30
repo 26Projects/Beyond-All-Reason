@@ -21,6 +21,8 @@ end
 
 local MAPSIZEX = Game.mapSizeX
 local MAPSIZEZ = Game.mapSizeZ
+local PARADROP_ROLL_PER_FRAME = math.rad(360) / Game.gameSpeed
+local MIN_PARADROP_HORIZONTAL_SPEED_SQ = 0.01
 local CMD_GUARD = CMD.GUARD
 local CMD_REPAIR = CMD.REPAIR
 local mines = {}
@@ -62,6 +64,17 @@ local isMineResistant = {}
 local isStealthsTransport = {}
 local isSelfOnlyAssist = {}
 local fallingParatroopers = {}
+
+local function StopParadropAnimation(unitID)
+	local data = fallingParatroopers[unitID]
+	if not data then
+		return
+	end
+
+	fallingParatroopers[unitID] = nil
+	Spring.SetUnitRotation(unitID, 0, data.originalYaw, 0)
+end
+
 for udid, ud in pairs(UnitDefs) do
 	local cp = ud.customParams
 	if cp.mine then
@@ -177,10 +190,7 @@ function gadget:AllowUnitBuildStep(builderID, builderTeam, unitID, unitDefID, pa
 end
 
 function gadget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
-	if fallingParatroopers[unitID] then
-		fallingParatroopers[unitID] = nil
-		Spring.CallCOBScript(unitID, "EndParadrop", 0)
-	end
+	StopParadropAnimation(unitID)
 	if isStealthsTransport[unitDefID] then
 		Spring.SetUnitStealth(transportID, true)
 	end
@@ -190,8 +200,13 @@ function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 	if hasParadropAnimation[unitDefID] then
 		local x, y, z = Spring.GetUnitPosition(unitID)
 		if x and y - Spring.GetGroundHeight(x, z) > 5 then
-			fallingParatroopers[unitID] = true
-			Spring.CallCOBScript(unitID, "StartParadrop", 0)
+			local pitch, yaw, roll = Spring.GetUnitRotation(unitID)
+			fallingParatroopers[unitID] = {
+				pitch = pitch or 0,
+				originalYaw = yaw or 0,
+				yaw = yaw or 0,
+				roll = roll or 0,
+			}
 		end
 	end
 	if isStealthsTransport[unitDefID] then
@@ -200,17 +215,21 @@ function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
 end
 
 function gadget:GameFrame(frame)
-	if frame % 3 ~= 0 then
-		return
-	end
-
-	for unitID in pairs(fallingParatroopers) do
+	for unitID, data in pairs(fallingParatroopers) do
 		local x, y, z = Spring.GetUnitPosition(unitID)
 		if not x or y - Spring.GetGroundHeight(x, z) <= 5 then
-			fallingParatroopers[unitID] = nil
 			if x then
-				Spring.CallCOBScript(unitID, "EndParadrop", 0)
+				StopParadropAnimation(unitID)
+			else
+				fallingParatroopers[unitID] = nil
 			end
+		else
+			local velocityX, _, velocityZ = Spring.GetUnitVelocity(unitID)
+			if velocityX and ((velocityX * velocityX) + (velocityZ * velocityZ) > MIN_PARADROP_HORIZONTAL_SPEED_SQ) then
+				data.yaw = math.atan2(velocityX, velocityZ)
+			end
+			data.pitch = data.pitch + PARADROP_ROLL_PER_FRAME
+			Spring.SetUnitRotation(unitID, data.pitch, data.yaw, data.roll)
 		end
 	end
 end
