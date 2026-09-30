@@ -1,7 +1,7 @@
 model = {
-	radius = 34,
-	height = 42,
-	tex1 = "xmasball3.dds",
+	radius = 41,
+	height = 46,
+	tex1 = "paradrop_parachute.png",
 	tex2 = "blank_texture2.tga",
 }
 return model
