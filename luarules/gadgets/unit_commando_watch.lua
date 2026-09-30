@@ -25,16 +25,43 @@ local CMD_GUARD = CMD.GUARD
 local CMD_REPAIR = CMD.REPAIR
 local mines = {}
 local constructionBuilder = {}
+local builderConstructions = {}
 local MINE_BLAST = {}
 MINE_BLAST[WeaponDefNames.mine_light.id] = true
 MINE_BLAST[WeaponDefNames.mine_medium.id] = true
 MINE_BLAST[WeaponDefNames.mine_heavy.id] = true
 
+local function SetConstructionBuilder(unitID, builderID)
+	constructionBuilder[unitID] = builderID
+	if not builderConstructions[builderID] then
+		builderConstructions[builderID] = {}
+	end
+	builderConstructions[builderID][unitID] = true
+end
+
+local function ClearConstructionBuilder(unitID)
+	local builderID = constructionBuilder[unitID]
+	if not builderID then
+		return
+	end
+
+	constructionBuilder[unitID] = nil
+	local constructions = builderConstructions[builderID]
+	if constructions then
+		constructions[unitID] = nil
+		if not next(constructions) then
+			builderConstructions[builderID] = nil
+		end
+	end
+end
+
 local isMine = {}
 local isParatrooper = {}
+local hasParadropAnimation = {}
 local isMineResistant = {}
 local isStealthsTransport = {}
 local isSelfOnlyAssist = {}
+local fallingParatroopers = {}
 for udid, ud in pairs(UnitDefs) do
 	local cp = ud.customParams
 	if cp.mine then
@@ -42,6 +69,9 @@ for udid, ud in pairs(UnitDefs) do
 	end
 	if cp.paratrooper then
 		isParatrooper[udid] = true
+	end
+	if cp.paradrop_animation then
+		hasParadropAnimation[udid] = true
 	end
 	if cp.mine_resistant then
 		isMineResistant[udid] = true
@@ -93,18 +123,26 @@ function gadget:UnitCreated(unitID, unitDefID, unitTeam, builderID)
 		mines[unitID] = builderID
 	end
 	if builderID and isSelfOnlyAssist[Spring.GetUnitDefID(builderID)] then
-		constructionBuilder[unitID] = builderID
+		SetConstructionBuilder(unitID, builderID)
 	end
 end
 
 function gadget:UnitDestroyed(unitID, unitDefID, unitTeam, attackerID, attackerDefID, attackerTeam, weaponDefID)
 	mines[unitID] = nil
-	constructionBuilder[unitID] = nil
+	fallingParatroopers[unitID] = nil
+	ClearConstructionBuilder(unitID)
+
+	local constructions = builderConstructions[unitID]
+	if constructions then
+		for constructionID in pairs(constructions) do
+			constructionBuilder[constructionID] = nil
+		end
+		builderConstructions[unitID] = nil
+	end
 end
 
 function gadget:UnitFinished(unitID, unitDefID, unitTeam)
 	mines[unitID] = nil
-	constructionBuilder[unitID] = nil
 end
 
 function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams)
@@ -120,18 +158,14 @@ function gadget:AllowCommand(unitID, unitDefID, unitTeam, cmdID, cmdParams)
 		return true
 	end
 
-	-- Area repair could select another builder's nanoframe, so only permit
-	-- direct unit repair commands for this restricted builder.
+	-- Area repair could select a unit made by another builder, so only permit
+	-- direct repair commands targeting a unit this exact builder created.
 	if #cmdParams ~= 1 and #cmdParams ~= 5 then
 		return false
 	end
 
 	local targetID = cmdParams[1]
-	if not targetID or not Spring.GetUnitIsBeingBuilt(targetID) then
-		return true
-	end
-
-	return constructionBuilder[targetID] == unitID
+	return targetID ~= nil and constructionBuilder[targetID] == unitID
 end
 
 function gadget:AllowUnitBuildStep(builderID, builderTeam, unitID, unitDefID, part)
@@ -139,21 +173,44 @@ function gadget:AllowUnitBuildStep(builderID, builderTeam, unitID, unitDefID, pa
 		return true
 	end
 
-	if not Spring.GetUnitIsBeingBuilt(unitID) then
-		return true
-	end
-
 	return constructionBuilder[unitID] == builderID
 end
 
 function gadget:UnitLoaded(unitID, unitDefID, unitTeam, transportID, transportTeam)
+	if fallingParatroopers[unitID] then
+		fallingParatroopers[unitID] = nil
+		Spring.CallCOBScript(unitID, "EndParadrop", 0)
+	end
 	if isStealthsTransport[unitDefID] then
 		Spring.SetUnitStealth(transportID, true)
 	end
 end
 
 function gadget:UnitUnloaded(unitID, unitDefID, teamID, transportID)
+	if hasParadropAnimation[unitDefID] then
+		local x, y, z = Spring.GetUnitPosition(unitID)
+		if x and y - Spring.GetGroundHeight(x, z) > 5 then
+			fallingParatroopers[unitID] = true
+			Spring.CallCOBScript(unitID, "StartParadrop", 0)
+		end
+	end
 	if isStealthsTransport[unitDefID] then
 		Spring.SetUnitStealth(transportID, false)
+	end
+end
+
+function gadget:GameFrame(frame)
+	if frame % 3 ~= 0 then
+		return
+	end
+
+	for unitID in pairs(fallingParatroopers) do
+		local x, y, z = Spring.GetUnitPosition(unitID)
+		if not x or y - Spring.GetGroundHeight(x, z) <= 5 then
+			fallingParatroopers[unitID] = nil
+			if x then
+				Spring.CallCOBScript(unitID, "EndParadrop", 0)
+			end
+		end
 	end
 end

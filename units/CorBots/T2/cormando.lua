@@ -52,13 +52,14 @@ return {
 			[3] = "cormine1",
 			[4] = "cormine2",
 			[5] = "cordrag",
+			[6] = "corrl",
 		},
 		customparams = {
 			fall_damage_multiplier = 0,
 			mine_resistant = true,
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",
-			paralyzemultiplier = 0.2,
+			paralyzemultiplier = 0,
 			paratrooper = true,
 			reaimtime = 2,
 			self_only_assist = true,
@@ -141,7 +142,6 @@ return {
 		},
 		weapons = {
 			[1] = {
-				badtargetcategory = "VTOL",
 				def = "COMMANDO_BLASTER",
 				fastautoretargeting = true,
 				fastquerypointupdate = true,
