@@ -1,0 +1,32 @@
+#include "../recoil_common_includes.h"
+
+piece parachute, smoke1, smoke2, smoke3, smoke4, smoke5;
+
+SmokeTails()
+{
+	while (TRUE)
+	{
+		emit-sfx 1024 from smoke1;
+		emit-sfx 1024 from smoke4;
+		emit-sfx 1025 from smoke2;
+		emit-sfx 1025 from smoke3;
+		emit-sfx 1026 from smoke5;
+		sleep 80;
+	}
+}
+
+Create()
+{
+	hide smoke1;
+	hide smoke2;
+	hide smoke3;
+	hide smoke4;
+	hide smoke5;
+	start-script SmokeTails();
+}
+
+Killed(severity, corpsetype)
+{
+	corpsetype = 0;
+	return (corpsetype);
+}

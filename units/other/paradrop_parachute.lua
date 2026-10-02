@@ -19,12 +19,19 @@ return {
 		objectname = "Units/paradrop_parachute.dae",
 		reclaimable = false,
 		repairable = false,
-		script = "blank.cob",
+		script = "Units/paradrop_parachute.cob",
 		seismicsignature = 0,
 		sightdistance = 0,
 		sonarstealth = true,
 		stealth = true,
 		upright = false,
+		sfxtypes = {
+			explosiongenerators = {
+				[1] = "custom:paradrop-blue-trail-short",
+				[2] = "custom:paradrop-blue-trail-medium",
+				[3] = "custom:paradrop-blue-trail-long",
+			},
+		},
 		customparams = {
 			decoration = 2,
 			nohealthbars = true,
