@@ -34,6 +34,9 @@ local spIsPosInAirLos = Spring.IsPosInAirLos
 local spGetMyAllyTeamID = Spring.GetLocalAllyTeamID
 local spGetSpectatingState = Spring.GetSpectatingState
 local spGetGameFrame = Spring.GetGameFrame
+local spPlaySoundFile = Spring.PlaySoundFile
+local spGetProjectileTarget = Spring.GetProjectileTarget
+local spGetUnitDefID = Spring.GetUnitDefID
 local spGetProjectileOwnerID = Spring.GetProjectileOwnerID
 local spGetProjectilesInRectangle = Spring.GetProjectilesInRectangle
 local spIsAABBInView = Spring.IsAABBInView
@@ -159,6 +162,14 @@ local shaderConfig = {
 --------------------------------------------------------------------------------
 local weaponConfigs = {} -- weaponDefID -> config table
 local LIVE_FLARE_PULSE_INIT = 1.0 - BEAM_SUSTAIN_LIFEFRAC * FLARE_LIFE_DIM -- pre-computed for weaponConfigs
+local COMMANDER_ARMOR_TYPE = Game.armorTypes.commanders
+local UNIT_TARGET_TYPE = string.byte("u")
+
+local function parseColor(value)
+	if not value then return end
+	local r, g, b = value:match("^%s*([%d%.]+)%s+([%d%.]+)%s+([%d%.]+)%s*$")
+	return tonumber(r), tonumber(g), tonumber(b)
+end
 
 -- A weapon definition mounted once on a unit has only one legitimate emitter.
 -- Keep model-space hardpoint separation only for definitions mounted repeatedly.
@@ -238,9 +249,54 @@ for weaponID, weaponDef in pairs(WeaponDefs) do
 				liveFlareR = coreR * FLARE_COLOR_MULT * LIVE_FLARE_PULSE_INIT,
 				liveFlareG = coreG * FLARE_COLOR_MULT * LIVE_FLARE_PULSE_INIT,
 				liveFlareB = coreB * FLARE_COLOR_MULT * LIVE_FLARE_PULSE_INIT,
+				sound = cp.beam_default_sound,
 			}
+			local commanderR, commanderG, commanderB = parseColor(cp.beam_commander_color)
+			if commanderR and commanderG and commanderB then
+				-- Keep a precomputed visual variant; targeting and emitter tracking
+				-- continue to use master's shared base configuration.
+				local cfg = weaponConfigs[weaponID]
+				local commanderCfg = {}
+				for key, value in pairs(cfg) do commanderCfg[key] = value end
+				local widthMult = tonumber(cp.beam_commander_thickness_mult) or 1
+				commanderCfg.colorR, commanderCfg.colorG, commanderCfg.colorB = commanderR, commanderG, commanderB
+				commanderCfg.coreR = mathMin(1, commanderR + CORE_COLOR_ADD)
+				commanderCfg.coreG = mathMin(1, commanderG + CORE_COLOR_ADD)
+				commanderCfg.coreB = mathMin(1, commanderB + CORE_COLOR_ADD)
+				commanderCfg.beamWidth = cfg.beamWidth * widthMult
+				commanderCfg.flareSize = cfg.flareSize * widthMult
+				commanderCfg.liveFlareSize = cfg.liveFlareSize * widthMult
+				commanderCfg.flareColorR = commanderCfg.coreR * FLARE_COLOR_MULT
+				commanderCfg.flareColorG = commanderCfg.coreG * FLARE_COLOR_MULT
+				commanderCfg.flareColorB = commanderCfg.coreB * FLARE_COLOR_MULT
+				commanderCfg.liveFlareR = commanderCfg.flareColorR * LIVE_FLARE_PULSE_INIT
+				commanderCfg.liveFlareG = commanderCfg.flareColorG * LIVE_FLARE_PULSE_INIT
+				commanderCfg.liveFlareB = commanderCfg.flareColorB * LIVE_FLARE_PULSE_INIT
+				commanderCfg.sound = cp.beam_commander_sound or cfg.sound
+				cfg.commanderConfig = commanderCfg
+			end
 		end
 	end
+end
+
+local function getBeamVisualConfig(projectileID, cfg)
+	if cfg.commanderConfig then
+		local targetType, targetID = spGetProjectileTarget(projectileID)
+		if targetType == UNIT_TARGET_TYPE and type(targetID) == "number" then
+			local targetDefID = spGetUnitDefID(targetID)
+			if targetDefID and UnitDefs[targetDefID].armorType == COMMANDER_ARMOR_TYPE then
+				return cfg.commanderConfig
+			end
+		end
+	end
+	return cfg
+end
+
+local playedBeamSounds = {}
+local function playBeamSound(projectileID, cfg, x, y, z)
+	if not cfg.sound or playedBeamSounds[projectileID] then return end
+	playedBeamSounds[projectileID] = spGetGameFrame()
+	spPlaySoundFile(cfg.sound, 1, x, y, z, "sfx")
 end
 
 -- Check if we have any beam weapons
@@ -1258,6 +1314,10 @@ local pendingBounds = { math.huge, math.huge, math.huge, -math.huge, -math.huge,
 local viewPad = 0
 for _, cfg in pairs(weaponConfigs) do
 	viewPad = mathMax(viewPad, cfg.beamWidth * GLOW_WIDTH_MULT * 1.1, cfg.liveFlareSize)
+	local commanderCfg = cfg.commanderConfig
+	if commanderCfg then
+		viewPad = mathMax(viewPad, commanderCfg.beamWidth * GLOW_WIDTH_MULT * 1.1, commanderCfg.liveFlareSize)
+	end
 end
 viewPad = viewPad + 32
 
@@ -1357,6 +1417,8 @@ local function scanBeams()
 						end
 					end
 					if visible then
+						local visualCfg = getBeamVisualConfig(proID, cfg)
+						if startInLos then playBeamSound(proID, visualCfg, px, py, pz) end
 						-- Save original (unclipped) positions for ghost beam tracking
 						local origPx, origPy, origPz = px, py, pz
 						local origEndX, origEndY, origEndZ = endX, endY, endZ
@@ -1430,6 +1492,7 @@ local function scanBeams()
 						tracked.endZ = origEndZ
 						tracked.lastSeenFrame = gameFrame
 						tracked.ownerAllyTeam = proAlly
+						tracked.visualCfg = visualCfg -- Retain the same color/width throughout the fading ghost.
 						tracked.liveX = px
 						tracked.liveY = py
 						tracked.liveZ = pz
@@ -1470,7 +1533,7 @@ local function buildBeams()
 
 	for i = 1, trackedCount do
 		local tracked = trackedList[i]
-		local cfg = tracked.cfg
+		local cfg = tracked.visualCfg or tracked.cfg
 		local sx, sy, sz, ex, ey, ez, lifeFrac, intensityFalloff, flareSize, flareG, flareB
 		if tracked.liveStamp == stamp then
 			sx, sy, sz = tracked.liveX, tracked.liveY, tracked.liveZ
@@ -1609,6 +1672,9 @@ function gadget:GameFrame(n)
 	-- ownerBeams sub-tables so they don't accumulate for units that stopped firing.
 	if n > beamCleanupFrame then
 		beamCleanupFrame = n + 30
+		for projectileID, soundFrame in pairs(playedBeamSounds) do
+			if n - soundFrame > 30 then playedBeamSounds[projectileID] = nil end
+		end
 		local staleThreshold = GHOST_FRAMES_MAX + 2
 		local kept = 0
 		local bounds = pendingBounds
