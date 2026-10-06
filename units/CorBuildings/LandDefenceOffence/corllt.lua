@@ -116,7 +116,7 @@ return {
 				rgbcolor = "1 0 0",
 				soundhitdry = "",
 				soundhitwet = "sizzle",
-				soundstart = "lasrfir3",
+				soundstart = "",
 				soundtrigger = 1,
 				thickness = 2,
 				tolerance = 10000,
@@ -124,6 +124,11 @@ return {
 				weapontype = "BeamLaser",
 				weaponvelocity = 2250,
 				customparams = {
+					beam_commander_color = "0.992 0.302 0.8",
+					beam_commander_hit_ceg = "llt-commander-hit-pink",
+					beam_commander_sound = "sounds/weapons/lasrfir4scav.wav",
+					beam_commander_thickness_mult = 1.5,
+					beam_default_sound = "sounds/weapons/lasrfir3.wav",
 					exclude_preaim = true,
 				},
 				damage = {

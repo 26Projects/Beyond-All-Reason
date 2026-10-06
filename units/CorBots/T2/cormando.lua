@@ -60,7 +60,6 @@ return {
 			model_author = "FireStorm",
 			normaltex = "unittextures/cor_normal.dds",
 			paradrop_animation = true,
-			paradrop_piece = "pelvis",
 			paralyzemultiplier = 0,
 			paratrooper = true,
 			reaimtime = 2,

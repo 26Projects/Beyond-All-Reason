@@ -59,8 +59,68 @@ local function BlueTrail(vaporLife, vaporSpread, glowLife, glowSpread, sizeScale
 	}
 end
 
+local jumpJet = {
+	vapor = {
+		air = true,
+		class = [[CSimpleParticleSystem]],
+		count = 1,
+		ground = true,
+		water = true,
+		properties = {
+			airdrag = 0.96,
+			colormap = [[1 1 1 1   0.62 0.9 1 0.92   0.2 0.56 1 0.70   0.05 0.24 0.72 0.35   0 0.05 0.2 0.08   0 0 0 0]],
+			directional = false,
+			emitrot = 0,
+			emitrotspread = 10,
+			emitvector = [[dir]],
+			gravity = [[0, -0.015, 0]],
+			numparticles = 1,
+			particlelife = 24,
+			particlelifespread = 5,
+			particlesize = 8.5,
+			particlesizespread = 1.7,
+			particlespeed = 1.35,
+			particlespeedspread = 0.25,
+			pos = [[-0.5 r1, -0.5 r1, -0.5 r1]],
+			sizegrowth = -0.08,
+			sizemod = 0.965,
+			texture = [[smoke_puff2]],
+			useairlos = true,
+		},
+	},
+	glow = {
+		air = true,
+		class = [[CSimpleParticleSystem]],
+		count = 1,
+		ground = true,
+		water = true,
+		properties = {
+			airdrag = 1,
+			colormap = [[1 1 1 1   0.5 0.88 1 0.96   0.12 0.5 1 0.65   0.02 0.16 0.58 0.20   0 0 0 0]],
+			directional = false,
+			emitrot = 0,
+			emitrotspread = 4,
+			emitvector = [[dir]],
+			gravity = [[0, 0, 0]],
+			numparticles = 1,
+			particlelife = 9,
+			particlelifespread = 2,
+			particlesize = 6.5,
+			particlesizespread = 1,
+			particlespeed = 0.45,
+			particlespeedspread = 0.12,
+			pos = [[-0.25 r0.5, -0.25 r0.5, -0.25 r0.5]],
+			sizegrowth = -0.12,
+			sizemod = 0.97,
+			texture = [[glow2]],
+			useairlos = true,
+		},
+	},
+}
+
 return {
 	["paradrop-blue-trail-short"] = BlueTrail(6, 2, 3, 1, 0.85),
 	["paradrop-blue-trail-medium"] = BlueTrail(9, 2, 5, 1, 0.925),
 	["paradrop-blue-trail-long"] = BlueTrail(14, 3, 7, 2, 1),
+	["paradrop-blue-jumpjet"] = jumpJet,
 }

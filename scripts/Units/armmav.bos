@@ -5,16 +5,23 @@ piece  rflare, lflare, body, pelvis, rthigh, lthigh, rleg, head,
        luparm, ruparm, lloarm, rloarm, lleg, lhipgun, rhipgun, lholster, rhandgun, lhandgun,
        rholster, rfoot, lfoot, aimy1, aimx1;
 
-static-var  ReadyToAim, gun_1, isMoving, isAiming, isParadropping, restore_delay, wpn1_lasthead,
+static-var  ReadyToAim, gun_1, isMoving, isAiming, restore_delay, wpn1_lasthead,
 			animSpeed, maxSpeed, animFramesPerKeyframe;
+static-var isParadropping;
 
 // Signal definitions
 #define SIGNAL_AIM1 256
 #define SIGNAL_MOVE 1
+#define SIGNAL_PARADROP 2
 
 #include "../opencloseanim.h"
 
 lua_UnitScriptDecal(lightIndex, xpos,zpos, heading) 
+{
+	return 0;
+}
+
+lua_GunslingerTumbleStarted()
 {
 	return 0;
 }
@@ -461,28 +468,85 @@ StopMoving(){
 	}
 }
 
-StartParadropPose(){
+StartParadropPose()
+{
+	isParadropping = TRUE;
 	signal SIGNAL_MOVE;
-	isParadropping=TRUE;
-
-	turn lthigh to x-axis <-90.0> speed <720.0>;
-	turn rthigh to x-axis <-90.0> speed <720.0>;
-	turn lleg to x-axis <90.0> speed <720.0>;
-	turn rleg to x-axis <90.0> speed <720.0>;
-	turn luparm to x-axis <-90.0> speed <720.0>;
-	turn ruparm to x-axis <-90.0> speed <720.0>;
-	turn lloarm to x-axis <-90.0> speed <720.0>;
-	turn rloarm to x-axis <-90.0> speed <720.0>;
+	signal SIGNAL_AIM1;
+	signal SIGNAL_PARADROP;
+	isAiming = FALSE;
+	start-script ParadropRoll();
 }
 
-EndParadropPose(){
-	isParadropping=FALSE;
+ParadropRoll()
+{
+	set-signal-mask SIGNAL_PARADROP;
+	// Let any in-progress gun draw/holster finish before owning the limbs.
+	while (IsInTransition) { sleep 33; }
+	call-script StopWalking();
+	move pelvis to y-axis [0.0] now;
+	move pelvis to z-axis [0.0] now;
+	turn pelvis to x-axis <0.0> now;
+	turn pelvis to y-axis <0.0> now;
+	turn pelvis to z-axis <0.0> now;
+	turn aimy1 to y-axis <0.0> speed <720>;
+	turn aimx1 to x-axis <0.0> speed <720>;
+	// Compact roll: knees to chest, heels folded back, forearms pulled in.
+	turn lthigh to x-axis <-135> speed <720>;
+	turn rthigh to x-axis <-135> speed <720>;
+	turn lleg to x-axis <155> speed <720>;
+	turn rleg to x-axis <155> speed <720>;
+	turn lfoot to x-axis <-20> speed <360>;
+	turn rfoot to x-axis <-20> speed <360>;
+	turn body to x-axis <20> speed <240>;
+	turn head to x-axis <20> speed <240>;
+	turn luparm to x-axis <-35> speed <540>;
+	turn ruparm to x-axis <-35> speed <540>;
+	turn lloarm to x-axis <-135> speed <720>;
+	turn rloarm to x-axis <-135> speed <720>;
+	sleep 220;
+	call-script lua_GunslingerTumbleStarted();
+	// The root pelvis is 23.5 units above ground: rotate the whole hierarchy
+	// here, not the unit transform at its feet or just the upper-body child.
+	while (TRUE) {
+		turn pelvis to x-axis <90> speed <702>;
+		wait-for-turn pelvis around x-axis;
+		turn pelvis to x-axis <180> speed <702>;
+		wait-for-turn pelvis around x-axis;
+		turn pelvis to x-axis <270> speed <702>;
+		wait-for-turn pelvis around x-axis;
+		turn pelvis to x-axis <0> speed <702>;
+		wait-for-turn pelvis around x-axis;
+	}
+}
+
+EndParadropTumble()
+{
+	signal SIGNAL_PARADROP;
+	call-script StopWalking();
+	turn pelvis to x-axis <0> speed <1080>;
+	turn body to x-axis <0> speed <540>;
+	turn head to x-axis <0> speed <540>;
+	turn lthigh to x-axis <0> speed <1080>;
+	turn rthigh to x-axis <0> speed <1080>;
+	turn lleg to x-axis <0> speed <1080>;
+	turn rleg to x-axis <0> speed <1080>;
+	turn luparm to x-axis <0> speed <1080>;
+	turn ruparm to x-axis <0> speed <1080>;
+	turn lloarm to x-axis <0> speed <1080>;
+	turn rloarm to x-axis <0> speed <1080>;
+	// Keep locomotion locked until touchdown while the jets continue.
+}
+
+EndParadropPose()
+{
+	call-script EndParadropTumble();
+	isParadropping = FALSE;
 	if (isMoving) {
 		start-script UnitSpeed();
 		start-script Walk();
-	} else {
-		call-script StopWalking();
 	}
+	start-script RestoreAfterDelay();
 }
 
 ready2()
@@ -806,6 +870,7 @@ QueryNanoPiece(pieceIndex)
 static-var  Stunned;
 ExecuteRestoreAfterDelay()
 {
+    if (isParadropping) { return (1); }
     if (Stunned) {
         return (1);
     }
@@ -831,7 +896,9 @@ RestoreAfterDelay()
 
 AimWeapon1(heading, pitch)
 {
+	if (isParadropping) { return (0); }
 	signal SIGNAL_AIM1;
+	set-signal-mask SIGNAL_AIM1;
 	start-script OpenCloseAnim(1);
 	isAiming = TRUE;
 	turn aimy1 to y-axis heading speed <250.027473>;
